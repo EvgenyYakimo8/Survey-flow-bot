@@ -1,0 +1,27 @@
+# Основные настройки приложения
+spring:
+  application:
+    name: Survey-Flow-Bot
+
+server:
+  port: ${PORT:8080} # Render.com сам подставит порт
+
+# Настройки бота
+telegram:
+  bot:
+    token: ${BOT_TOKEN}
+    username: ${BOT_USERNAME}
+    webhook-enabled: true
+    webhook-path: /webhook
+    webhook-url: ${WEBHOOK_URL}
+
+# Логирование
+logging:
+  level:
+    io.telegram.bot: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/${spring.application.name}.log # Лог-файл (будет создан при запуске)
