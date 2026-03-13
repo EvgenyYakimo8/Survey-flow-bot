@@ -4,7 +4,7 @@ spring:
     name: Survey-Flow-Bot
 
 server:
-  port: ${PORT:8080} # Render.com сам подставит порт
+  port: ${PORT} # Render.com сам подставит порт
 
 # Настройки бота
 telegram:
