@@ -31,8 +31,14 @@ public class TelegramBot extends SpringWebhookBot {
 
     @Override
     public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
+        log.info("🔥 Получено обновление: updateId={}", update.getUpdateId());
         var responses = updateHandler.handleUpdate(update);
-        return responses.isEmpty() ? null : responses.getFirst();
+        if (responses.isEmpty()) {
+            log.warn("⚠️ Обработчик не вернул ответов");
+            return null;
+        }
+        log.info("✅ Отправляем ответ: {}", responses.getFirst().getClass().getSimpleName());
+        return responses.getFirst();
     }
 
     @Override
