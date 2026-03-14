@@ -38,11 +38,6 @@
         </dependency>
         <dependency>
             <groupId>org.telegram</groupId>
-            <artifactId>telegrambots-springboot-webhook-starter</artifactId>
-            <version>9.4.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.telegram</groupId>
             <artifactId>telegrambots-client</artifactId>
             <version>9.4.0</version>
         </dependency>

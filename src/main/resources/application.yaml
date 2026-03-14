@@ -14,10 +14,13 @@ telegram:
   bot:
     token: ${BOT_TOKEN}
     username: ${BOT_USERNAME}
+    # ВАЖНО: Это БАЗОВЫЙ URL без слеша в конце
+    webhook-url: ${WEBHOOK_BASE_URL}
+    # ВАЖНО: Это путь, начинающийся со слеша
     webhook-path: /webhook
-    webhook-url: ${WEBHOOK_URL}
 
 # Логирование
 logging:
   level:
     io.telegram.bot: DEBUG
+    org.springframework.web: INFO
