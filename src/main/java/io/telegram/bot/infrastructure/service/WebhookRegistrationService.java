@@ -25,9 +25,14 @@ public class WebhookRegistrationService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void registerWebhook() {
-        int attempts = 5;
-        while (attempts-- > 0) {
+        int maxAttempts = 10;
+        int attempt = 0;
+        long delayMillis = 3000; // 3 секунды
+
+        while (attempt < maxAttempts) {
+            attempt++;
             try {
+                log.info("Попытка {} установки вебхука на {}", attempt, fullWebhookUrl);
                 SetWebhook setWebhook = SetWebhook.builder()
                         .url(fullWebhookUrl)
                         .build();
@@ -35,12 +40,14 @@ public class WebhookRegistrationService {
                 log.info("✅ Вебхук успешно установлен на {}", fullWebhookUrl);
                 return;
             } catch (TelegramApiException e) {
-                log.warn("Попытка установки вебхука не удалась (осталось {} попыток): {}", attempts, e.getMessage());
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException ignored) {}
+                log.warn("Попытка {} не удалась: {}. Осталось попыток: {}", attempt, e.getMessage(), maxAttempts - attempt);
+                if (attempt < maxAttempts) {
+                    try {
+                        Thread.sleep(delayMillis);
+                    } catch (InterruptedException ignored) {}
+                }
             }
         }
-        log.error("❌ Не удалось установить вебхук после нескольких попыток.");
+        log.error("❌ Не удалось установить вебхук после {} попыток.", maxAttempts);
     }
 }
