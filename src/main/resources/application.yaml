@@ -15,7 +15,7 @@ telegram:
     token: ${BOT_TOKEN}
     username: ${BOT_USERNAME}
     # ВАЖНО: Это БАЗОВЫЙ URL без слеша в конце
-    webhook-url: ${WEBHOOK_BASE_URL}
+    webhook-url: ${WEBHOOK_URL}
     # ВАЖНО: Это путь, начинающийся со слеша
     webhook-path: /webhook
 
