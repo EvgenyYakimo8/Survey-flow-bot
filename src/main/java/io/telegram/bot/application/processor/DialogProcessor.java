@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.ArrayList;
@@ -53,7 +53,9 @@ public class DialogProcessor implements UpdateProcessor {
             if (handler.canHandle(state)) {
                 List<BotApiMethod<?>> responses = handler.handle(update, state, context, userService);
                 if (update.hasCallbackQuery()) {
-                    AnswerCallbackQuery answer = new AnswerCallbackQuery();
+                    AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
+                            .callbackQueryId(update.getCallbackQuery().getId())
+                            .build();
                     answer.setCallbackQueryId(update.getCallbackQuery().getId());
                     // Можно добавить короткое уведомление (необязательно)
                     // answer.setText("✓");

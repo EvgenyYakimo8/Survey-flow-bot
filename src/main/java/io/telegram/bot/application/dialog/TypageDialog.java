@@ -4,13 +4,15 @@ import io.telegram.bot.application.service.InMemoryUserService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class TypageDialog implements DialogHandler {
@@ -186,12 +188,15 @@ public class TypageDialog implements DialogHandler {
     }
 
     private SendMessage createQuestionMessage(long chatId, Question q) {
-        List<List<InlineKeyboardButton>> rows = q.options.stream()
-                .map(opt -> List.of(InlineKeyboardButton.builder()
-                        .text(opt.text)
-                        .callbackData(opt.id)
-                        .build()))
-                .toList();
+        List<InlineKeyboardRow> rows = q.options.stream()
+                .map(opt -> new InlineKeyboardRow(
+                        InlineKeyboardButton.builder()
+                                .text(opt.text)
+                                .callbackData(opt.id)
+                                .build()
+                ))
+                .collect(Collectors.toList());
+
         return SendMessage.builder()
                 .chatId(String.valueOf(chatId))
                 .text(q.text)

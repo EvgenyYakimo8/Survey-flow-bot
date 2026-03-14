@@ -4,18 +4,16 @@ spring:
     name: Survey-Flow-Bot
   autoconfigure:
     exclude:
-      - org.telegram.telegrambots.longpolling.starter.TelegramBotStarterConfiguration
+      - org.telegram.telegrambots.webhook.starter.TelegramBotStarterConfiguration
 
 server:
-  port: ${PORT} # Render.com сам подставит порт
+  port: 8080
 
 # Настройки бота
 telegram:
   bot:
     token: ${BOT_TOKEN}
     username: ${BOT_USERNAME}
-    webhook-path: /webhook
-    webhook-url: ${WEBHOOK_URL}
 
 # Логирование
 logging:

@@ -1,7 +1,7 @@
 package io.telegram.bot.application.dialog;
 
 import io.telegram.bot.application.service.InMemoryUserService;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
