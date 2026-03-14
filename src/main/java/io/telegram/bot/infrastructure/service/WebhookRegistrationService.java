@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 @Slf4j
 @Service
 public class WebhookRegistrationService {
-
     private final TelegramClient telegramClient;
     private final String fullWebhookUrl;
 
@@ -21,18 +20,27 @@ public class WebhookRegistrationService {
                                       @Value("${telegram.bot.webhook-path}") String path) {
         this.telegramClient = telegramClient;
         this.fullWebhookUrl = baseUrl + path;
+        log.info("Будет установлен вебхук на URL: {}", fullWebhookUrl);
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void registerWebhook() {
-        try {
-            SetWebhook setWebhook = SetWebhook.builder()
-                    .url(fullWebhookUrl)
-                    .build();
-            telegramClient.execute(setWebhook);
-            log.info("✅ Вебхук успешно установлен на {}", fullWebhookUrl);
-        } catch (TelegramApiException e) {
-            log.error("❌ Не удалось установить вебхук: {}", e.getMessage(), e);
+        int attempts = 5;
+        while (attempts-- > 0) {
+            try {
+                SetWebhook setWebhook = SetWebhook.builder()
+                        .url(fullWebhookUrl)
+                        .build();
+                telegramClient.execute(setWebhook);
+                log.info("✅ Вебхук успешно установлен на {}", fullWebhookUrl);
+                return;
+            } catch (TelegramApiException e) {
+                log.warn("Попытка установки вебхука не удалась (осталось {} попыток): {}", attempts, e.getMessage());
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ignored) {}
+            }
         }
+        log.error("❌ Не удалось установить вебхук после нескольких попыток.");
     }
 }
