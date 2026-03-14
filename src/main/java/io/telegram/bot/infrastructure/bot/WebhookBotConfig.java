@@ -19,6 +19,7 @@ public class WebhookBotConfig {
             UpdateHandler updateHandler,
             @Value("${telegram.bot.webhook-path}") String botPath) {
 
+
         return new SpringTelegramWebhookBot(
                 botPath,
                 update -> {

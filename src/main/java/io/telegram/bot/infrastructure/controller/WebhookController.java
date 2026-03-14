@@ -1,6 +1,5 @@
 package io.telegram.bot.infrastructure.controller;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,8 +15,8 @@ public class WebhookController {
     public WebhookController(SpringTelegramWebhookBot webhookBot) {
         this.webhookBot = webhookBot;
     }
-
-    @PostMapping("${telegram.bot.webhook-path}")
+//"${telegram.bot.webhook-path}"
+    @PostMapping("/webhook")
     public BotApiMethod<?> onWebhookUpdate(@RequestBody Update update) {
         return webhookBot.consumeUpdate(update);
     }
