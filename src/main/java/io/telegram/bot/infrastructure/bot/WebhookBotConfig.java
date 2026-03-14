@@ -12,7 +12,7 @@ import java.util.List;
 
 @Configuration
 @Profile("!dev")
-public class WebhookBot {
+public class WebhookBotConfig {
 
     @Bean
     public SpringTelegramWebhookBot webhookBot(
