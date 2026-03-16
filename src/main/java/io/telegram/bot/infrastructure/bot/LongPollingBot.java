@@ -1,4 +1,3 @@
-/*
 package io.telegram.bot.infrastructure.bot;
 
 import io.telegram.bot.application.service.UpdateHandler;
@@ -52,4 +51,4 @@ public class LongPollingBot implements SpringLongPollingBot {
             }
         };
     }
-}*/
+}

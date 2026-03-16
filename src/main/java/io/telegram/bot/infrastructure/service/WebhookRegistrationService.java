@@ -1,3 +1,4 @@
+/*
 package io.telegram.bot.infrastructure.service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -79,4 +80,4 @@ public class WebhookRegistrationService {
             return false;
         }
     }
-}
+}*/
