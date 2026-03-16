@@ -222,9 +222,11 @@ public class TypageDialog implements DialogHandler {
     private void sendMessageAsync(SendMessage message) {
         CompletableFuture.runAsync(() -> {
             try {
+                log.debug("Sending async message to chat {}: {}", message.getChatId(), message.getText());
                 telegramClient.execute(message);
             } catch (TelegramApiException e) {
-                log.error("Failed to send message asynchronously", e);
+                log.error("Failed to send message asynchronously. ChatId: {}, Text: {}",
+                        message.getChatId(), message.getText(), e);
             }
         });
     }
@@ -254,7 +256,7 @@ public class TypageDialog implements DialogHandler {
         return SendMessage.builder()
                 .chatId(String.valueOf(chatId))
                 .text(text)
-                .parseMode("Markdown")
+                //.parseMode("Markdown")
                 .build();
     }
 
