@@ -24,9 +24,7 @@ public class TypageDialog implements DialogHandler {
     private static final Map<String, Question> QUESTIONS = new LinkedHashMap<>();
     private static final Map<String, Result> RESULTS = new HashMap<>();
 
-    // TelegramClient больше не нужен для отправки, так как все ответы возвращаются списком,
-    // но может пригодиться в будущем. Оставим на всякий случай.
-    private final TelegramClient telegramClient;
+    private final TelegramClient telegramClient; // может пригодиться в будущем
 
     public TypageDialog(TelegramClient telegramClient) {
         this.telegramClient = telegramClient;
@@ -41,10 +39,89 @@ public class TypageDialog implements DialogHandler {
                         new Option("q1_opt2", "160–175 см", "Q3"),
                         new Option("q1_opt3", "выше 175 см", "Q4")
                 )));
-        // ... остальная инициализация без изменений ...
+
+        // ----- Вопрос 2 (для роста до 160) -----
+        QUESTIONS.put("Q2", new Question(
+                "Уточните телосложение:",
+                List.of(
+                        new Option("q2_opt1", "Хрупкое", "Q5"),
+                        new Option("q2_opt2", "Среднее", "Q6"),
+                        new Option("q2_opt3", "Плотное", "Q7")
+                )));
+
+        // ----- Вопрос 3 (для роста 160–175) -----
+        QUESTIONS.put("Q3", new Question(
+                "Какая у вас форма лица?",
+                List.of(
+                        new Option("q3_opt1", "Овальное", "Q8"),
+                        new Option("q3_opt2", "Круглое", "Q9"),
+                        new Option("q3_opt3", "Квадратное", "R1")
+                )));
+
+        // ----- Вопрос 4 (для роста выше 175) -----
+        QUESTIONS.put("Q4", new Question(
+                "Выберите цветотип:",
+                List.of(
+                        new Option("q4_opt1", "Весна", "R2"),
+                        new Option("q4_opt2", "Лето", "R3"),
+                        new Option("q4_opt3", "Осень", "R4"),
+                        new Option("q4_opt4", "Зима", "R5")
+                )));
+
+        // ----- Вопрос 5 -----
+        QUESTIONS.put("Q5", new Question(
+                "Какой у вас тип волос?",
+                List.of(
+                        new Option("q5_opt1", "Прямые", "R6"),
+                        new Option("q5_opt2", "Волнистые", "R7"),
+                        new Option("q5_opt3", "Кудрявые", "R8")
+                )));
+
+        // ----- Вопрос 6 -----
+        QUESTIONS.put("Q6", new Question(
+                "Какой у вас разрез глаз?",
+                List.of(
+                        new Option("q6_opt1", "Миндалевидный", "R9"),
+                        new Option("q6_opt2", "Круглый", "R10")
+                )));
+
+        // ----- Вопрос 7 -----
+        QUESTIONS.put("Q7", new Question(
+                "Выберите оттенок кожи:",
+                List.of(
+                        new Option("q7_opt1", "Светлый", "R11"),
+                        new Option("q7_opt2", "Смуглый", "R12")
+                )));
+
+        // ----- Вопрос 8 (для овального лица) -----
+        QUESTIONS.put("Q8", new Question(
+                "Дополнительный вопрос для овального лица:",
+                List.of(
+                        new Option("q8_opt1", "Вариант А", "R1"),
+                        new Option("q8_opt2", "Вариант Б", "R2")
+                )));
+
+        // ----- Вопрос 9 (для круглого лица) -----
+        QUESTIONS.put("Q9", new Question(
+                "Дополнительный вопрос для круглого лица:",
+                List.of(
+                        new Option("q9_opt1", "Вариант В", "R3"),
+                        new Option("q9_opt2", "Вариант Г", "R4")
+                )));
+
         // ----- 12 результатов -----
         RESULTS.put("R1", new Result("Типаж «Альфа»", "https://example.com/alpha"));
-        // ... и так далее ...
+        RESULTS.put("R2", new Result("Типаж «Бета»", "https://example.com/beta"));
+        RESULTS.put("R3", new Result("Типаж «Гамма»", "https://example.com/gamma"));
+        RESULTS.put("R4", new Result("Типаж «Дельта»", "https://example.com/delta"));
+        RESULTS.put("R5", new Result("Типаж «Эпсилон»", "https://example.com/epsilon"));
+        RESULTS.put("R6", new Result("Типаж «Дзета»", "https://example.com/zeta"));
+        RESULTS.put("R7", new Result("Типаж «Эта»", "https://example.com/eta"));
+        RESULTS.put("R8", new Result("Типаж «Тета»", "https://example.com/theta"));
+        RESULTS.put("R9", new Result("Типаж «Йота»", "https://example.com/iota"));
+        RESULTS.put("R10", new Result("Типаж «Каппа»", "https://example.com/kappa"));
+        RESULTS.put("R11", new Result("Типаж «Лямбда»", "https://example.com/lambda"));
+        RESULTS.put("R12", new Result("Типаж «Мю»", "https://example.com/mu"));
     }
 
     @Override
@@ -61,7 +138,7 @@ public class TypageDialog implements DialogHandler {
         long chatId = update.getCallbackQuery().getMessage().getChatId();
         String answerId = update.getCallbackQuery().getData();
 
-        // Создаём список и сразу добавляем AnswerCallbackQuery
+        // Всегда начинаем список с AnswerCallbackQuery
         List<BotApiMethod<?>> responses = new ArrayList<>();
         responses.add(AnswerCallbackQuery.builder()
                 .callbackQueryId(update.getCallbackQuery().getId())
@@ -131,7 +208,6 @@ public class TypageDialog implements DialogHandler {
         return responses;
     }
 
-    // Вспомогательные методы (без изменений)
     public SendMessage createFirstQuestion(long chatId) {
         return createQuestionMessage(chatId, QUESTIONS.get("Q1"));
     }
@@ -157,7 +233,7 @@ public class TypageDialog implements DialogHandler {
         return SendMessage.builder()
                 .chatId(String.valueOf(chatId))
                 .text(text)
-                //.parseMode("Markdown")
+                //.parseMode("Markdown") // отключено для избежания ошибок парсинга
                 .build();
     }
 
