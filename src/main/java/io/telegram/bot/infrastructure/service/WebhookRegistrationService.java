@@ -25,9 +25,9 @@ public class WebhookRegistrationService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void registerWebhook() {
-        int maxAttempts = 10;
+        int maxAttempts = 20;
         int attempt = 0;
-        long delayMillis = 3000; // 3 секунды
+        long delayMillis = 5000; // 3 секунды
 
         while (attempt < maxAttempts) {
             attempt++;
