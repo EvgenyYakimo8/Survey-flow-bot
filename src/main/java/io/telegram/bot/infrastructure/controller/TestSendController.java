@@ -3,6 +3,7 @@ package io.telegram.bot.infrastructure.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -27,6 +28,18 @@ public class TestSendController {
             return "✅ OK: сообщение отправлено";
         } catch (TelegramApiException e) {
             return "❌ Ошибка: " + e.getMessage();
+        }
+    }
+
+
+    @GetMapping("/test-api")
+    public String testApi() {
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            String result = restTemplate.getForObject("https://api.telegram.org", String.class);
+            return "✅ API доступен, ответ: " + result;
+        } catch (Exception e) {
+            return "❌ API недоступен: " + e.getMessage();
         }
     }
 }
