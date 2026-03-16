@@ -133,7 +133,6 @@ public class TypageDialog implements DialogHandler {
 
     @Override
     public List<BotApiMethod<?>> handle(Update update, String state, Map<String, Object> context, InMemoryUserService userService) {
-        // Игнорируем обычные сообщения во время теста
         if (!update.hasCallbackQuery()) {
             return List.of();
         }
@@ -146,36 +145,32 @@ public class TypageDialog implements DialogHandler {
             Result result = RESULTS.get(state);
             if (result == null) {
                 userService.resetDialog(chatId);
-                sendMessageAsync(createSimpleMessage(chatId, "Ошибка: результат не найден."));
-                return createAnswerCallback(update);
+                return List.of(createSimpleMessage(chatId, "Ошибка: результат не найден."));
             }
             userService.resetDialog(chatId);
-            sendMessageAsync(createSimpleMessage(chatId,
+            return List.of(createSimpleMessage(chatId,
                     "✅ Ваш типаж: *" + result.name + "*\n\nПодробнее: " + result.link));
-            return createAnswerCallback(update);
         }
 
         // Получаем текущий вопрос
         Question current = QUESTIONS.get(state);
         if (current == null) {
             userService.resetDialog(chatId);
-            sendMessageAsync(createSimpleMessage(chatId, "Ошибка. Начните тест заново командой /test"));
-            return createAnswerCallback(update);
+            return List.of(createSimpleMessage(chatId, "Ошибка. Начните тест заново командой /test"));
         }
 
-        // Ищем выбранную опцию по идентификатору
+        // Ищем выбранную опцию
         Option selected = current.options.stream()
                 .filter(opt -> opt.id.equals(answerId))
                 .findFirst()
                 .orElse(null);
 
         if (selected == null) {
-            // Если нажата неизвестная кнопка — повторяем вопрос
-            sendMessageAsync(createQuestionMessage(chatId, current));
-            return createAnswerCallback(update);
+            // Неизвестная кнопка – повторяем вопрос
+            return List.of(createQuestionMessage(chatId, current));
         }
 
-        // Сохраняем ответ (текст ответа) в контекст
+        // Сохраняем ответ в контекст
         context.put(state, selected.text);
         userService.setDialogContext(chatId, context);
 
@@ -185,10 +180,10 @@ public class TypageDialog implements DialogHandler {
             Result result = RESULTS.get(next);
             if (result == null) {
                 userService.resetDialog(chatId);
-                sendMessageAsync(createSimpleMessage(chatId, "Ошибка: результат не найден."));
+                return List.of(createSimpleMessage(chatId, "Ошибка: результат не найден."));
             } else {
                 userService.resetDialog(chatId);
-                sendMessageAsync(createSimpleMessage(chatId,
+                return List.of(createSimpleMessage(chatId,
                         "✅ Ваш типаж: *" + result.name + "*\n\nПодробнее: " + result.link));
             }
         } else {
@@ -196,14 +191,11 @@ public class TypageDialog implements DialogHandler {
             Question nextQuestion = QUESTIONS.get(next);
             if (nextQuestion == null) {
                 userService.resetDialog(chatId);
-                sendMessageAsync(createSimpleMessage(chatId, "Ошибка: следующий вопрос не найден."));
+                return List.of(createSimpleMessage(chatId, "Ошибка: следующий вопрос не найден."));
             } else {
-                sendMessageAsync(createQuestionMessage(chatId, nextQuestion));
+                return List.of(createQuestionMessage(chatId, nextQuestion));
             }
         }
-
-        // Возвращаем только AnswerCallbackQuery
-        return createAnswerCallback(update);
     }
 
     /**
