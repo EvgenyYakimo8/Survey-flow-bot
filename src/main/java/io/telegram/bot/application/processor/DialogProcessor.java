@@ -46,6 +46,7 @@ public class DialogProcessor implements UpdateProcessor {
         } else {
             return List.of();
         }
+
         String state = userService.getConversationState(chatId);
         Map<String, Object> context = userService.getDialogContext(chatId);
 
@@ -57,16 +58,20 @@ public class DialogProcessor implements UpdateProcessor {
                 if (update.hasCallbackQuery()) {
                     boolean hasAnswer = responses.stream().anyMatch(r -> r instanceof AnswerCallbackQuery);
                     if (!hasAnswer) {
+                        // Если обработчик забыл добавить AnswerCallbackQuery, добавляем его сами
                         AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
                                 .callbackQueryId(update.getCallbackQuery().getId())
                                 .build();
                         responses = new ArrayList<>(responses);
                         responses.addFirst(answer);
+                        log.warn("Handler {} did not return AnswerCallbackQuery, added automatically", handler.getClass().getSimpleName());
                     }
                 }
+
                 return responses;
             }
         }
+
         userService.resetDialog(chatId);
         return List.of();
     }
