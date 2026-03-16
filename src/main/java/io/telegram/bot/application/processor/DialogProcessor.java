@@ -52,15 +52,17 @@ public class DialogProcessor implements UpdateProcessor {
         for (DialogHandler handler : dialogHandlers) {
             if (handler.canHandle(state)) {
                 List<BotApiMethod<?>> responses = handler.handle(update, state, context, userService);
+
+                // Для callback-запросов гарантируем наличие AnswerCallbackQuery
                 if (update.hasCallbackQuery()) {
-                    AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
-                            .callbackQueryId(update.getCallbackQuery().getId())
-                            .build();
-                    answer.setCallbackQueryId(update.getCallbackQuery().getId());
-                    // Можно добавить короткое уведомление (необязательно)
-                    // answer.setText("✓");
-                    responses = new ArrayList<>(responses);
-                    responses.addFirst(answer); // Чтобы ответ на callback ушёл первым
+                    boolean hasAnswer = responses.stream().anyMatch(r -> r instanceof AnswerCallbackQuery);
+                    if (!hasAnswer) {
+                        AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
+                                .callbackQueryId(update.getCallbackQuery().getId())
+                                .build();
+                        responses = new ArrayList<>(responses);
+                        responses.addFirst(answer);
+                    }
                 }
                 return responses;
             }

@@ -3,22 +3,34 @@ package io.telegram.bot.application.dialog;
 import io.telegram.bot.application.service.InMemoryUserService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class TypageDialog implements DialogHandler {
 
     private static final Map<String, Question> QUESTIONS = new LinkedHashMap<>();
     private static final Map<String, Result> RESULTS = new HashMap<>();
+
+    private final TelegramClient telegramClient;
+
+    public TypageDialog(TelegramClient telegramClient) {
+        this.telegramClient = telegramClient;
+    }
 
     static {
         // ----- Вопрос 1 -----
@@ -99,7 +111,7 @@ public class TypageDialog implements DialogHandler {
                         new Option("q9_opt2", "Вариант Г", "R4")
                 )));
 
-        // ----- 12 результатов (замените ссылки на реальные) -----
+        // ----- 12 результатов -----
         RESULTS.put("R1", new Result("Типаж «Альфа»", "https://example.com/alpha"));
         RESULTS.put("R2", new Result("Типаж «Бета»", "https://example.com/beta"));
         RESULTS.put("R3", new Result("Типаж «Гамма»", "https://example.com/gamma"));
@@ -121,9 +133,11 @@ public class TypageDialog implements DialogHandler {
 
     @Override
     public List<BotApiMethod<?>> handle(Update update, String state, Map<String, Object> context, InMemoryUserService userService) {
+        // Игнорируем обычные сообщения во время теста
         if (!update.hasCallbackQuery()) {
-            return List.of(); // игнорируем обычные сообщения во время теста
+            return List.of();
         }
+
         long chatId = update.getCallbackQuery().getMessage().getChatId();
         String answerId = update.getCallbackQuery().getData();
 
@@ -132,18 +146,21 @@ public class TypageDialog implements DialogHandler {
             Result result = RESULTS.get(state);
             if (result == null) {
                 userService.resetDialog(chatId);
-                return List.of(createSimpleMessage(chatId, "Ошибка: результат не найден."));
+                sendMessageAsync(createSimpleMessage(chatId, "Ошибка: результат не найден."));
+                return createAnswerCallback(update);
             }
             userService.resetDialog(chatId);
-            return List.of(createSimpleMessage(chatId,
+            sendMessageAsync(createSimpleMessage(chatId,
                     "✅ Ваш типаж: *" + result.name + "*\n\nПодробнее: " + result.link));
+            return createAnswerCallback(update);
         }
 
         // Получаем текущий вопрос
         Question current = QUESTIONS.get(state);
         if (current == null) {
             userService.resetDialog(chatId);
-            return List.of(createSimpleMessage(chatId, "Ошибка. Начните тест заново командой /test"));
+            sendMessageAsync(createSimpleMessage(chatId, "Ошибка. Начните тест заново командой /test"));
+            return createAnswerCallback(update);
         }
 
         // Ищем выбранную опцию по идентификатору
@@ -154,7 +171,8 @@ public class TypageDialog implements DialogHandler {
 
         if (selected == null) {
             // Если нажата неизвестная кнопка — повторяем вопрос
-            return List.of(createQuestionMessage(chatId, current));
+            sendMessageAsync(createQuestionMessage(chatId, current));
+            return createAnswerCallback(update);
         }
 
         // Сохраняем ответ (текст ответа) в контекст
@@ -167,20 +185,48 @@ public class TypageDialog implements DialogHandler {
             Result result = RESULTS.get(next);
             if (result == null) {
                 userService.resetDialog(chatId);
-                return List.of(createSimpleMessage(chatId, "Ошибка: результат не найден."));
+                sendMessageAsync(createSimpleMessage(chatId, "Ошибка: результат не найден."));
+            } else {
+                userService.resetDialog(chatId);
+                sendMessageAsync(createSimpleMessage(chatId,
+                        "✅ Ваш типаж: *" + result.name + "*\n\nПодробнее: " + result.link));
             }
-            userService.resetDialog(chatId);
-            return List.of(createSimpleMessage(chatId,
-                    "✅ Ваш типаж: *" + result.name + "*\n\nПодробнее: " + result.link));
         } else {
             userService.setConversationState(chatId, next);
             Question nextQuestion = QUESTIONS.get(next);
             if (nextQuestion == null) {
                 userService.resetDialog(chatId);
-                return List.of(createSimpleMessage(chatId, "Ошибка: следующий вопрос не найден."));
+                sendMessageAsync(createSimpleMessage(chatId, "Ошибка: следующий вопрос не найден."));
+            } else {
+                sendMessageAsync(createQuestionMessage(chatId, nextQuestion));
             }
-            return List.of(createQuestionMessage(chatId, nextQuestion));
         }
+
+        // Возвращаем только AnswerCallbackQuery
+        return createAnswerCallback(update);
+    }
+
+    /**
+     * Создаёт AnswerCallbackQuery для синхронного ответа на нажатие кнопки.
+     */
+    private List<BotApiMethod<?>> createAnswerCallback(Update update) {
+        AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
+                .callbackQueryId(update.getCallbackQuery().getId())
+                .build();
+        return Collections.singletonList(answer);
+    }
+
+    /**
+     * Асинхронная отправка сообщения через TelegramClient.
+     */
+    private void sendMessageAsync(SendMessage message) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                telegramClient.execute(message);
+            } catch (TelegramApiException e) {
+                log.error("Failed to send message asynchronously", e);
+            }
+        });
     }
 
     public SendMessage createFirstQuestion(long chatId) {
