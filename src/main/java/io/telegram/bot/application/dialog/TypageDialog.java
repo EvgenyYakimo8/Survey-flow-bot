@@ -54,7 +54,6 @@ public class TypageDialog implements DialogHandler {
 
     @Override
     public List<BotApiMethod<?>> handle(Update update, String state, Map<String, Object> context, InMemoryUserService userService) {
-        // Работаем только с callback-запросами
         if (!update.hasCallbackQuery()) {
             return List.of();
         }
@@ -62,12 +61,11 @@ public class TypageDialog implements DialogHandler {
         long chatId = update.getCallbackQuery().getMessage().getChatId();
         String answerId = update.getCallbackQuery().getData();
 
-        // Подготавливаем список ответов. Первым всегда будет AnswerCallbackQuery
+        // Создаём список и сразу добавляем AnswerCallbackQuery
         List<BotApiMethod<?>> responses = new ArrayList<>();
-        AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
+        responses.add(AnswerCallbackQuery.builder()
                 .callbackQueryId(update.getCallbackQuery().getId())
-                .build();
-        responses.add(answer);
+                .build());
 
         // Если состояние — результат
         if (state.startsWith("R")) {
