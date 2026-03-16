@@ -32,7 +32,7 @@ public class WebhookRegistrationService {
     public void registerWebhook() {
         int maxAttempts = 30; // Увеличим количество попыток
         int attempt = 0;
-        long delayMillis = 5000; // 5 секунд
+        long delayMillis = 10000; // 10 секунд
 
         while (attempt < maxAttempts) {
             attempt++;
