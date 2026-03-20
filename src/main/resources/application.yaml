@@ -5,9 +5,12 @@ spring:
   autoconfigure:
     exclude:
       - org.telegram.telegrambots.longpolling.starter.TelegramBotStarterConfiguration
+  threads:
+    virtual:
+      enabled: true
 
 server:
-  port: ${PORT} # Render.com сам подставит порт
+  port: ${PORT:8080} # Render.com сам подставит порт
 
 # Настройки бота
 telegram:
